@@ -1,3 +1,4 @@
+import asyncio
 import os
 import logging
 
@@ -5,6 +6,7 @@ from typing import Literal
 from fastapi import FastAPI
 from pydantic import BaseModel, Field
 from dotenv import load_dotenv
+from fastapi.responses import StreamingResponse
 
 from utils.utility import _http
 from config.logging_config import setup_logging
@@ -137,6 +139,16 @@ async def chat_completions(request: ChatRequest):
     
     return response
 
+
+@app.get("/stream")
+async def stream() -> StreamingResponse:
+
+    async def generator(r: int):
+        for i in range(r):
+            yield f"data: {i}\n\n"
+            await asyncio.sleep(1)
+
+    return StreamingResponse(generator(20), media_type="text/event-stream")
 
 @app.get("/")
 async def root():
